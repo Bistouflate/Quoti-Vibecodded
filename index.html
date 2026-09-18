@@ -28,7 +28,6 @@
 
     --teal:#4CAF6D; --teal-deep:#2F8F52;
     --amber:#FFC53D; --amber-deep:#E0A400;
-    --plum:#22B8B0; --plum-deep:#189089;
     --rose:#F5A623; --rose-deep:#CC8400;
     --sky:#3DA5F4; --sky-deep:#1E85D6;
     --sport:#FF9142; --sport-deep:#E6752A;
@@ -50,7 +49,6 @@
       --line-strong:#47484F;
       --teal:#5FCB86; --teal-deep:#3E9C63;
       --amber:#FFD166; --amber-deep:#E3AC33;
-      --plum:#3DD6CD; --plum-deep:#22A79F;
       --rose:#FFBB55; --rose-deep:#D99429;
       --sky:#63B8F7; --sky-deep:#3D97DE;
       --sport:#FFA35D; --sport-deep:#E9843A;
@@ -68,7 +66,6 @@
     --line-strong:#47484F;
     --teal:#5FCB86; --teal-deep:#3E9C63;
     --amber:#FFD166; --amber-deep:#E3AC33;
-    --plum:#3DD6CD; --plum-deep:#22A79F;
     --rose:#FFBB55; --rose-deep:#D99429;
     --sky:#63B8F7; --sky-deep:#3D97DE;
     --sport:#FFA35D; --sport-deep:#E9843A;
@@ -118,19 +115,25 @@
   }
   .stats-pill .flame{font-size:1.1rem;}
 
-  /* Tab bar - icon bubble style */
+  /* Tab bar - staggered honeycomb layout, bottom row sits in the gaps of the top row */
   .tabbar{
-    display:flex; gap:6px;
-    padding:6px 12px 16px;
-    overflow-x:auto;
-    scrollbar-width:none;
+    display:grid;
+    grid-template-columns: repeat(8, 1fr);
+    grid-template-rows: auto auto;
+    row-gap:6px;
+    padding:6px 10px 14px;
   }
-  .tabbar::-webkit-scrollbar{display:none;}
+  .tabbar .tab-btn:nth-child(1){ grid-column: 1 / 3; grid-row: 1; }
+  .tabbar .tab-btn:nth-child(2){ grid-column: 3 / 5; grid-row: 1; }
+  .tabbar .tab-btn:nth-child(3){ grid-column: 5 / 7; grid-row: 1; }
+  .tabbar .tab-btn:nth-child(4){ grid-column: 7 / 9; grid-row: 1; }
+  .tabbar .tab-btn:nth-child(5){ grid-column: 2 / 4; grid-row: 2; }
+  .tabbar .tab-btn:nth-child(6){ grid-column: 4 / 6; grid-row: 2; }
+  .tabbar .tab-btn:nth-child(7){ grid-column: 6 / 8; grid-row: 2; }
   .tab-btn{
-    flex:0 0 auto;
     display:flex; flex-direction:column; align-items:center; gap:5px;
     appearance:none; border:none; background:transparent;
-    padding:4px 8px 6px;
+    padding:4px 4px 6px;
     border-radius:16px;
     cursor:pointer;
     transition: transform .08s ease;
@@ -144,14 +147,13 @@
     border:2.5px solid var(--line);
     transition: background .15s ease, border-color .15s ease, transform .15s ease;
   }
-  .tab-label{font-size:0.66rem; font-weight:700; color:var(--ink-soft); white-space:nowrap;}
+  .tab-label{font-size:0.62rem; font-weight:700; color:var(--ink-soft); white-space:normal; text-align:center; line-height:1.15; max-width:78px;}
   .tab-btn.active .tab-label{color:var(--ink);}
   .tab-btn[data-tab="summary"].active .tab-icon{background:var(--summary); border-color:var(--summary); transform:scale(1.08); box-shadow:0 3px 0 var(--summary-deep);}
   .tab-btn[data-tab="tasks"].active .tab-icon{background:var(--teal); border-color:var(--teal); transform:scale(1.08); box-shadow:0 3px 0 var(--teal-deep);}
   .tab-btn[data-tab="program"].active .tab-icon{background:var(--program); border-color:var(--program); transform:scale(1.08); box-shadow:0 3px 0 var(--program-deep);}
   .tab-btn[data-tab="goals"].active .tab-icon{background:var(--sky); border-color:var(--sky); transform:scale(1.08); box-shadow:0 3px 0 var(--sky-deep);}
   .tab-btn[data-tab="sport"].active .tab-icon{background:var(--sport); border-color:var(--sport); transform:scale(1.08); box-shadow:0 3px 0 var(--sport-deep);}
-  .tab-btn[data-tab="sheets"].active .tab-icon{background:var(--plum); border-color:var(--plum); transform:scale(1.08); box-shadow:0 3px 0 var(--plum-deep);}
   .tab-btn[data-tab="notes"].active .tab-icon{background:var(--amber); border-color:var(--amber); transform:scale(1.08); box-shadow:0 3px 0 var(--amber-deep);}
   .tab-btn[data-tab="progress"].active .tab-icon{background:var(--rose); border-color:var(--rose); transform:scale(1.08); box-shadow:0 3px 0 var(--rose-deep);}
 
@@ -258,23 +260,6 @@
   .empty-state{padding:40px 10px; text-align:center; color:var(--ink-soft);}
   .empty-state .big{font-family:var(--font-display); font-size:1.15rem; color:var(--ink); margin-bottom:6px; font-weight:700;}
 
-  /* Sheets */
-  .sheet-block{margin-bottom:34px; border:2px solid var(--line); border-top:7px solid var(--plum); border-radius:18px; overflow:hidden; box-shadow:0 2px 6px rgba(0,0,0,0.05);}
-  .sheet-toolbar{
-    display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap;
-    background:var(--paper-alt); padding:12px 14px; border-bottom:2px solid var(--line);
-  }
-  .sheet-name{
-    font-family:var(--font-display); font-weight:700; font-size:1.05rem; border:none; background:transparent; flex:1; min-width:100px;
-  }
-  .sheet-scroll{overflow-x:auto;}
-  table.sheet-table{border-collapse:collapse; width:100%; min-width:420px;}
-  table.sheet-table th, table.sheet-table td{border:1px solid var(--line); padding:0;}
-  table.sheet-table th{background:var(--paper-alt2); font-size:0.72rem; color:var(--ink-soft); font-weight:800; padding:7px 8px; text-align:left;}
-  table.sheet-table td input{
-    width:100%; border:none; background:transparent; padding:8px; font-size:0.85rem; font-variant-numeric:tabular-nums; font-weight:600;
-  }
-  .sheet-actions{display:flex; gap:6px; padding:10px 12px; background:var(--paper);}
   .file-label{
     border:2px dashed var(--line-strong); border-radius:var(--radius); padding:9px 13px; font-size:0.82rem;
     cursor:pointer; color:var(--ink-soft); font-weight:700;
@@ -286,6 +271,21 @@
   .stat-box{border:2px solid var(--line); border-top:6px solid var(--rose); padding:14px 16px; border-radius:16px; background:var(--paper-alt);}
   .stat-num{font-family:var(--font-display); font-size:1.6rem; font-weight:800;}
   .stat-label{font-size:0.76rem; color:var(--ink-soft); margin-top:2px; font-weight:700;}
+  .backup-block{border-top:2px solid var(--line); padding-top:18px; margin-top:6px;}
+  .backup-title{font-size:1.05rem; margin-bottom:6px;}
+  .backup-sub{margin-bottom:12px; font-weight:600;}
+  .backup-row{align-items:center;}
+
+  /* Reordering */
+  .order-controls{display:flex; flex-direction:column; gap:3px; flex:0 0 auto;}
+  .order-btn{
+    width:24px; height:17px; border:none; background:var(--paper-alt2); border-radius:5px;
+    font-size:0.6rem; line-height:1; color:var(--ink-soft); cursor:pointer;
+    display:flex; align-items:center; justify-content:center; padding:0;
+  }
+  .order-btn:disabled{opacity:0.25; cursor:default;}
+  .order-btn:not(:disabled):active{transform:scale(0.9);}
+  .order-btn:not(:disabled):hover{color:var(--ink);}
 
   /* Task history */
   .history-section{margin-top:28px;}
@@ -376,7 +376,6 @@
     <button class="tab-btn" data-tab="program"><span class="tab-icon">🗓️</span><span class="tab-label">Programme</span></button>
     <button class="tab-btn" data-tab="goals"><span class="tab-icon">🎯</span><span class="tab-label">Objectifs</span></button>
     <button class="tab-btn" data-tab="sport"><span class="tab-icon">💪</span><span class="tab-label">Sport</span></button>
-    <button class="tab-btn" data-tab="sheets"><span class="tab-icon">📊</span><span class="tab-label">Feuilles</span></button>
     <button class="tab-btn" data-tab="notes"><span class="tab-icon">📝</span><span class="tab-label">Notes</span></button>
     <button class="tab-btn" data-tab="progress"><span class="tab-icon">🏆</span><span class="tab-label">Progression</span></button>
   </nav>
@@ -387,7 +386,6 @@
     <section id="tab-program" class="tab-panel"></section>
     <section id="tab-goals" class="tab-panel"></section>
     <section id="tab-sport" class="tab-panel"></section>
-    <section id="tab-sheets" class="tab-panel"></section>
     <section id="tab-notes" class="tab-panel"></section>
     <section id="tab-progress" class="tab-panel"></section>
   </main>
@@ -432,11 +430,33 @@
     el.style.height = 'auto';
     el.style.height = el.scrollHeight + 'px';
   }
+  function moveItem(arr, id, direction){
+    var i = arr.findIndex(function(x){ return x.id === id; });
+    if (i < 0) return;
+    var j = i + direction;
+    if (j < 0 || j >= arr.length) return;
+    var tmp = arr[i]; arr[i] = arr[j]; arr[j] = tmp;
+  }
+  function downloadFile(filename, content, mime){
+    if (downloadsNS) {
+      downloadsNS.save({filename: filename, data: content}).catch(function(e){ console.error(e); });
+      return;
+    }
+    try {
+      var blob = new Blob([content], {type: mime || 'text/plain;charset=utf-8;'});
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url; a.download = filename;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+    } catch(e) {
+      alert('Le téléchargement n\u2019est pas disponible ici.');
+    }
+  }
 
   function defaultState(){
     return {
       notes: [],
-      sheets: [],
       tasks: [],
       logs: {},
       streak: 0,
@@ -448,13 +468,9 @@
     };
   }
 
-  function loadInitialState(){
-    var el = document.getElementById('quoti-state');
-    var s = null;
-    try { s = JSON.parse(el.textContent); } catch(e) {}
+  function normalizeState(s){
     if (!s || typeof s !== 'object' || !s.tasks) s = defaultState();
     if (!s.notes) s.notes = [];
-    if (!s.sheets) s.sheets = [];
     if (!s.tasks) s.tasks = [];
     if (!s.logs) s.logs = {};
     if (typeof s.streak !== 'number') s.streak = 0;
@@ -468,6 +484,13 @@
     if (!s.sport.profile) s.sport.profile = { height:'', weight:'', age:'', goal:'forme', level:'debutant' };
     if (!s.sport.log) s.sport.log = {};
     return s;
+  }
+
+  function loadInitialState(){
+    var el = document.getElementById('quoti-state');
+    var s = null;
+    try { s = JSON.parse(el.textContent); } catch(e) {}
+    return normalizeState(s);
   }
 
   function buildDocument(s){
@@ -596,7 +619,6 @@
     renderTasks();
     renderProgram();
     renderNotes();
-    renderSheets();
     renderGoals();
     renderSport();
     renderProgress();
@@ -700,11 +722,15 @@
       html += '<div class="task-empty">Aucune tâche pour l\u2019instant. Ajoute tes tâches habituelles une fois pour toutes — elles reviendront chaque jour.</div>';
     } else {
       html += '<div class="task-list">';
-      state.tasks.forEach(function(task){
+      state.tasks.forEach(function(task, idx){
         var done = todays.indexOf(task.id) >= 0;
         html += '<div class="task-row">' +
           '<button class="task-check' + (done?' done':'') + '" data-id="' + task.id + '" aria-label="Marquer comme fait">' + (done?'✓':'') + '</button>' +
           '<span class="task-text' + (done?' done':'') + '">' + escapeHtml(task.text) + '</span>' +
+          '<div class="order-controls">' +
+          '<button class="order-btn" data-action="task-up" data-id="' + task.id + '"' + (idx===0?' disabled':'') + ' aria-label="Monter">▲</button>' +
+          '<button class="order-btn" data-action="task-down" data-id="' + task.id + '"' + (idx===state.tasks.length-1?' disabled':'') + ' aria-label="Descendre">▼</button>' +
+          '</div>' +
           '<button class="task-del" data-id="' + task.id + '" aria-label="Supprimer">×</button>' +
           '</div>';
       });
@@ -746,6 +772,20 @@
       btn.addEventListener('click', function(){
         var id = btn.dataset.id;
         state.tasks = state.tasks.filter(function(x){ return x.id !== id; });
+        render();
+        schedulePersist();
+      });
+    });
+    root.querySelectorAll('[data-action="task-up"]').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        moveItem(state.tasks, btn.dataset.id, -1);
+        render();
+        schedulePersist();
+      });
+    });
+    root.querySelectorAll('[data-action="task-down"]').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        moveItem(state.tasks, btn.dataset.id, 1);
         render();
         schedulePersist();
       });
@@ -893,158 +933,6 @@
     });
   }
 
-  function parseCSV(text){
-    return text.replace(/\r/g,'').split('\n').filter(function(l){ return l.length>0; }).map(function(line){
-      var result = [], cur = '', inQ = false;
-      for (var i=0;i<line.length;i++){
-        var c = line[i];
-        if (c === '"'){ inQ = !inQ; continue; }
-        if (c === ',' && !inQ){ result.push(cur); cur=''; continue; }
-        cur += c;
-      }
-      result.push(cur);
-      return result;
-    });
-  }
-  function toCSV(headers, rows){
-    function cell(v){
-      v = String(v == null ? '' : v);
-      return /[",\n]/.test(v) ? '"' + v.replace(/"/g,'""') + '"' : v;
-    }
-    var lines = [headers.map(cell).join(',')];
-    rows.forEach(function(r){ lines.push(r.map(cell).join(',')); });
-    return lines.join('\n');
-  }
-  function downloadFile(filename, content){
-    if (downloadsNS) {
-      downloadsNS.save({filename: filename, data: content}).catch(function(e){ console.error(e); });
-      return;
-    }
-    try {
-      var blob = new Blob([content], {type: 'text/csv;charset=utf-8;'});
-      var url = URL.createObjectURL(blob);
-      var a = document.createElement('a');
-      a.href = url; a.download = filename;
-      document.body.appendChild(a); a.click(); document.body.removeChild(a);
-      setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
-    } catch(e) {
-      alert('Le téléchargement n\u2019est pas disponible ici.');
-    }
-  }
-
-  function renderSheets(){
-    var root = document.getElementById('tab-sheets');
-    var html = '<div class="panel-head"><div><div class="panel-title">Feuilles</div>' +
-      '<div class="panel-sub">' + state.sheets.length + ' feuille' + (state.sheets.length===1?'':'s') + '</div></div>' +
-      '<div class="row"><label class="file-label">Importer un CSV<input type="file" id="import-csv" accept=".csv,text/csv"></label>' +
-      '<button class="btn" id="add-sheet-btn">+ Nouvelle feuille</button></div></div>';
-
-    if (state.sheets.length === 0) {
-      html += '<div class="empty-state"><div class="big">Pas encore de feuille</div>Crée une grille vide ou importe un fichier CSV.</div>';
-    } else {
-      state.sheets.forEach(function(sh){
-        html += '<div class="sheet-block" data-id="' + sh.id + '">' +
-          '<div class="sheet-toolbar"><input class="sheet-name" data-id="' + sh.id + '" value="' + escapeHtml(sh.name) + '">' +
-          '<div class="row"><button class="btn ghost small" data-action="export" data-id="' + sh.id + '">Exporter CSV</button>' +
-          '<button class="btn danger small" data-action="del-sheet" data-id="' + sh.id + '">Supprimer</button></div></div>' +
-          '<div class="sheet-scroll"><table class="sheet-table"><thead><tr>';
-        sh.columns.forEach(function(col, ci){
-          html += '<th>' + escapeHtml(col) + '</th>';
-        });
-        html += '</tr></thead><tbody>';
-        sh.rows.forEach(function(row, ri){
-          html += '<tr>';
-          sh.columns.forEach(function(col, ci){
-            var v = row[ci] != null ? row[ci] : '';
-            html += '<td><input type="text" data-id="' + sh.id + '" data-r="' + ri + '" data-c="' + ci + '" value="' + escapeHtml(v) + '"></td>';
-          });
-          html += '</tr>';
-        });
-        html += '</tbody></table></div>' +
-          '<div class="sheet-actions"><button class="btn ghost small" data-action="add-row" data-id="' + sh.id + '">+ Ligne</button>' +
-          '<button class="btn ghost small" data-action="add-col" data-id="' + sh.id + '">+ Colonne</button></div>' +
-          '</div>';
-      });
-    }
-    root.innerHTML = html;
-
-    document.getElementById('add-sheet-btn').addEventListener('click', function(){
-      state.sheets.push({id: uid(), name: 'Nouvelle feuille', columns:['A','B','C'], rows:[['','',''],['','',''],['','','']], updatedAt: Date.now()});
-      render();
-      schedulePersist();
-    });
-
-    var importInput = document.getElementById('import-csv');
-    importInput.addEventListener('change', function(){
-      var file = importInput.files[0];
-      if (!file) return;
-      var reader = new FileReader();
-      reader.onload = function(){
-        var grid = parseCSV(String(reader.result || ''));
-        if (grid.length === 0) return;
-        var headers = grid[0];
-        var rows = grid.slice(1).map(function(r){
-          while (r.length < headers.length) r.push('');
-          return r.slice(0, headers.length);
-        });
-        state.sheets.push({id: uid(), name: file.name.replace(/\.csv$/i,''), columns: headers, rows: rows, updatedAt: Date.now()});
-        render();
-        schedulePersist();
-      };
-      reader.readAsText(file);
-      importInput.value = '';
-    });
-
-    root.querySelectorAll('.sheet-name').forEach(function(inp){
-      inp.addEventListener('input', function(){
-        var sh = state.sheets.find(function(s){ return s.id === inp.dataset.id; });
-        if (sh) { sh.name = inp.value; schedulePersist(); }
-      });
-    });
-
-    root.querySelectorAll('table.sheet-table td input').forEach(function(inp){
-      inp.addEventListener('input', function(){
-        var sh = state.sheets.find(function(s){ return s.id === inp.dataset.id; });
-        if (!sh) return;
-        var r = parseInt(inp.dataset.r,10), c = parseInt(inp.dataset.c,10);
-        sh.rows[r][c] = inp.value;
-        schedulePersist();
-      });
-    });
-
-    root.querySelectorAll('[data-action="add-row"]').forEach(function(btn){
-      btn.addEventListener('click', function(){
-        var sh = state.sheets.find(function(s){ return s.id === btn.dataset.id; });
-        if (sh) { sh.rows.push(sh.columns.map(function(){ return ''; })); render(); schedulePersist(); }
-      });
-    });
-    root.querySelectorAll('[data-action="add-col"]').forEach(function(btn){
-      btn.addEventListener('click', function(){
-        var sh = state.sheets.find(function(s){ return s.id === btn.dataset.id; });
-        if (sh) {
-          var letter = String.fromCharCode(65 + (sh.columns.length % 26));
-          sh.columns.push(letter);
-          sh.rows.forEach(function(r){ r.push(''); });
-          render(); schedulePersist();
-        }
-      });
-    });
-    root.querySelectorAll('[data-action="del-sheet"]').forEach(function(btn){
-      btn.addEventListener('click', function(){
-        state.sheets = state.sheets.filter(function(s){ return s.id !== btn.dataset.id; });
-        render(); schedulePersist();
-      });
-    });
-    root.querySelectorAll('[data-action="export"]').forEach(function(btn){
-      btn.addEventListener('click', function(){
-        var sh = state.sheets.find(function(s){ return s.id === btn.dataset.id; });
-        if (!sh) return;
-        var csv = toCSV(sh.columns, sh.rows);
-        downloadFile((sh.name || 'feuille') + '.csv', csv);
-      });
-    });
-  }
-
   function renderProgress(){
     var root = document.getElementById('tab-progress');
     var goalsDone = ['short','mid','long'].reduce(function(sum, key){
@@ -1062,7 +950,46 @@
       '<div class="stat-box"><div class="stat-num">' + sportDays + '</div><div class="stat-label">Jours de sport</div></div>' +
       '</div>';
 
+    html += '<div class="backup-block">' +
+      '<div class="panel-title backup-title">Sauvegarde</div>' +
+      '<div class="panel-sub backup-sub">Exporte toutes tes données dans un fichier, ou restaure une sauvegarde.</div>' +
+      '<div class="row backup-row">' +
+      '<button class="btn ghost small" id="export-data-btn">Exporter mes données</button>' +
+      '<label class="file-label">Importer des données<input type="file" id="import-data-input" accept=".json,application/json"></label>' +
+      '</div></div>';
+
     root.innerHTML = html;
+
+    document.getElementById('export-data-btn').addEventListener('click', function(){
+      var json = JSON.stringify(state, null, 2);
+      var stamp = todayStr();
+      downloadFile('quoti-donnees-' + stamp + '.json', json, 'application/json;charset=utf-8;');
+    });
+
+    var importInput = document.getElementById('import-data-input');
+    importInput.addEventListener('change', function(){
+      var file = importInput.files[0];
+      if (!file) return;
+      var reader = new FileReader();
+      reader.onload = function(){
+        var parsed;
+        try { parsed = JSON.parse(String(reader.result || '')); } catch(e) {
+          alert('Ce fichier n\u2019est pas un fichier de données Quoti valide.');
+          return;
+        }
+        if (!parsed || typeof parsed !== 'object') {
+          alert('Ce fichier n\u2019est pas un fichier de données Quoti valide.');
+          return;
+        }
+        var ok = confirm('Cela va remplacer toutes tes données actuelles par celles de ce fichier. Continuer ?');
+        if (!ok) { importInput.value = ''; return; }
+        state = normalizeState(parsed);
+        render();
+        schedulePersist();
+      };
+      reader.readAsText(file);
+      importInput.value = '';
+    });
   }
 
   function renderGoals(){
@@ -1084,10 +1011,14 @@
         html += '<div class="task-empty">Aucun objectif pour l\u2019instant.</div>';
       } else {
         html += '<div class="task-list">';
-        list.forEach(function(g){
+        list.forEach(function(g, idx){
           html += '<div class="task-row">' +
             '<button class="task-check' + (g.done?' done':'') + '" data-action="toggle-goal" data-term="' + term.key + '" data-id="' + g.id + '" aria-label="Marquer comme atteint">' + (g.done?'✓':'') + '</button>' +
             '<span class="task-text' + (g.done?' done':'') + '">' + escapeHtml(g.text) + '</span>' +
+            '<div class="order-controls">' +
+            '<button class="order-btn" data-action="goal-up" data-term="' + term.key + '" data-id="' + g.id + '"' + (idx===0?' disabled':'') + ' aria-label="Monter">▲</button>' +
+            '<button class="order-btn" data-action="goal-down" data-term="' + term.key + '" data-id="' + g.id + '"' + (idx===list.length-1?' disabled':'') + ' aria-label="Descendre">▼</button>' +
+            '</div>' +
             '<button class="task-del" data-action="del-goal" data-term="' + term.key + '" data-id="' + g.id + '" aria-label="Supprimer">×</button>' +
             '</div>';
         });
@@ -1126,6 +1057,20 @@
       btn.addEventListener('click', function(){
         var term = btn.dataset.term, id = btn.dataset.id;
         state.goals[term] = state.goals[term].filter(function(x){ return x.id !== id; });
+        render();
+        schedulePersist();
+      });
+    });
+    root.querySelectorAll('[data-action="goal-up"]').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        moveItem(state.goals[btn.dataset.term], btn.dataset.id, -1);
+        render();
+        schedulePersist();
+      });
+    });
+    root.querySelectorAll('[data-action="goal-down"]').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        moveItem(state.goals[btn.dataset.term], btn.dataset.id, 1);
         render();
         schedulePersist();
       });
@@ -1216,7 +1161,7 @@
     });
   }
 
-  var VALID_TABS = ['summary','tasks','program','goals','sport','sheets','notes','progress'];
+  var VALID_TABS = ['summary','tasks','program','goals','sport','notes','progress'];
   function setActiveTab(tab){
     activeTab = tab;
     try { localStorage.setItem('quoti-active-tab', tab); } catch(e){}
