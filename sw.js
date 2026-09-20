@@ -1,4 +1,4 @@
-const CACHE = 'quoti-v4';
+const CACHE = 'quoti-v9';
 const ASSETS = [
   './',
   './index.html',
