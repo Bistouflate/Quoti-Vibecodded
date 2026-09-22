@@ -867,7 +867,9 @@
   function renderProgress(){
     var root = document.getElementById('tab-progress');
     var sportDays = Object.keys(state.sport.log).filter(function(d){ return state.sport.log[d]; }).length;
-    var programCount = state.program.length;
+    var goalsLeft = ['short','mid','long'].reduce(function(sum, key){
+      return sum + (state.goals[key] || []).filter(function(g){ return !g.done; }).length;
+    }, 0);
 
     var html = '<div class="panel-head"><div><div class="panel-title">Progression</div>' +
       '<div class="panel-sub">Ta régularité en un coup d\u2019œil</div></div></div>';
@@ -876,7 +878,7 @@
       '<div class="stat-box"><div class="stat-num">' + state.streak + '</div><div class="stat-label">Série actuelle</div></div>' +
       '<div class="stat-box"><div class="stat-num">' + state.longestStreak + '</div><div class="stat-label">Meilleure série</div></div>' +
       '<div class="stat-box"><div class="stat-num">' + sportDays + '</div><div class="stat-label">Jours de sport</div></div>' +
-      '<div class="stat-box"><div class="stat-num">' + programCount + '</div><div class="stat-label">Prévu au programme</div></div>' +
+      '<div class="stat-box"><div class="stat-num">' + goalsLeft + '</div><div class="stat-label">Objectifs restants</div></div>' +
       '</div>';
 
     html += '<div class="backup-block">' +
