@@ -278,7 +278,12 @@
   /* Goals */
   .goals-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:18px;}
   .goal-section{border:2px solid var(--line); border-top:7px solid var(--sky); border-radius:18px; padding:16px; background:var(--paper-alt);}
-  .goal-heading{font-family:var(--font-display); font-weight:700; font-size:1.05rem; margin-bottom:12px; color:var(--sky);}
+  .goal-heading-row{display:flex; align-items:baseline; justify-content:space-between; gap:8px; margin-bottom:12px;}
+  .goal-heading{font-family:var(--font-display); font-weight:700; font-size:1.05rem; color:var(--sky);}
+  .goal-count{
+    font-size:0.78rem; font-weight:800; color:var(--sky); background:var(--paper);
+    border:1.5px solid var(--sky); border-radius:999px; padding:2px 9px; flex:0 0 auto;
+  }
   .goal-add{display:flex; gap:8px; margin-bottom:12px; align-items:flex-end;}
   .goal-add textarea{
     flex:1; border:2px solid var(--line); font-family:inherit;
@@ -357,9 +362,9 @@
 
   <nav class="tabbar" id="tabbar">
     <button class="tab-btn active" data-tab="summary"><span class="tab-icon">🏠</span><span class="tab-label">Résumé</span></button>
-    <button class="tab-btn" data-tab="tasks"><span class="tab-icon">✅</span><span class="tab-label">Tâches</span></button>
+    <button class="tab-btn" data-tab="tasks"><span class="tab-icon">✅</span><span class="tab-label">Checklist</span></button>
     <button class="tab-btn" data-tab="program"><span class="tab-icon">🗓️</span><span class="tab-label">Programme</span></button>
-    <button class="tab-btn" data-tab="goals"><span class="tab-icon">🎯</span><span class="tab-label">Objectifs</span></button>
+    <button class="tab-btn" data-tab="goals"><span class="tab-icon">🎯</span><span class="tab-label">Tâches</span></button>
     <button class="tab-btn" data-tab="sport"><span class="tab-icon">💪</span><span class="tab-label">Sport</span></button>
     <button class="tab-btn" data-tab="progress"><span class="tab-icon">🏆</span><span class="tab-label">Progression</span></button>
   </nav>
@@ -684,7 +689,7 @@
     var doneCount = state.tasks.filter(function(task){ return todays.indexOf(task.id) >= 0; }).length;
 
     var html = '';
-    html += '<div class="panel-head"><div><div class="panel-title">Tâches</div>' +
+    html += '<div class="panel-head"><div><div class="panel-title">Checklist</div>' +
       '<div class="panel-sub">' + escapeHtml(fmtDateLong(new Date())) + '</div></div></div>';
     html += '<div class="task-add"><textarea id="new-task-input" placeholder="Ajouter une tâche récurrente…" maxlength="500" rows="1"></textarea>' +
       '<button class="btn" id="add-task-btn">Ajouter</button></div>';
@@ -811,8 +816,7 @@
       items.forEach(function(it){
         html += '<div class="program-row" data-id="' + it.id + '">' +
           '<input type="date" class="program-date" data-id="' + it.id + '" value="' + escapeHtml(it.date) + '">' +
-          '<textarea class="program-text' + (it.done?' done':'') + '" data-id="' + it.id + '" rows="1">' + escapeHtml(it.text) + '</textarea>' +
-          '<button class="task-check' + (it.done?' done':'') + '" data-action="toggle-program" data-id="' + it.id + '" aria-label="Marquer comme fait">' + (it.done?'✓':'') + '</button>' +
+          '<textarea class="program-text" data-id="' + it.id + '" rows="1">' + escapeHtml(it.text) + '</textarea>' +
           '<button class="task-del" data-action="del-program" data-id="' + it.id + '" aria-label="Supprimer">×</button>' +
           '</div>';
       });
@@ -847,12 +851,6 @@
         if (it) { it.text = inp.value; }
         autoGrow(inp);
         schedulePersist();
-      });
-    });
-    root.querySelectorAll('[data-action="toggle-program"]').forEach(function(btn){
-      btn.addEventListener('click', function(){
-        var it = state.program.find(function(x){ return x.id === btn.dataset.id; });
-        if (it) { it.done = !it.done; render(); schedulePersist(); }
       });
     });
     root.querySelectorAll('[data-action="del-program"]').forEach(function(btn){
@@ -930,12 +928,13 @@
       {key:'mid', label:'Moyen terme'},
       {key:'long', label:'Long terme'}
     ];
-    var html = '<div class="panel-head"><div><div class="panel-title">Objectifs</div>' +
+    var html = '<div class="panel-head"><div><div class="panel-title">Tâches</div>' +
       '<div class="panel-sub">Court, moyen et long terme</div></div></div>';
     html += '<div class="goals-grid">';
     terms.forEach(function(term){
       var list = state.goals[term.key] || [];
-      html += '<div class="goal-section"><div class="goal-heading">' + term.label + '</div>' +
+      html += '<div class="goal-section"><div class="goal-heading-row"><div class="goal-heading">' + term.label + '</div>' +
+        '<span class="goal-count">' + list.length + '</span></div>' +
         '<div class="goal-add"><textarea class="goal-input" data-term="' + term.key + '" placeholder="Ajouter un objectif…" maxlength="500" rows="1"></textarea>' +
         '<button class="btn small" data-action="add-goal" data-term="' + term.key + '">Ajouter</button></div>';
       if (list.length === 0) {
@@ -944,13 +943,12 @@
         html += '<div class="task-list">';
         list.forEach(function(g, idx){
           html += '<div class="task-row">' +
-            '<button class="task-check' + (g.done?' done':'') + '" data-action="toggle-goal" data-term="' + term.key + '" data-id="' + g.id + '" aria-label="Marquer comme atteint">' + (g.done?'✓':'') + '</button>' +
-            '<textarea class="task-text' + (g.done?' done':'') + '" data-term="' + term.key + '" data-id="' + g.id + '" rows="1">' + escapeHtml(g.text) + '</textarea>' +
+            '<button class="task-del" data-action="del-goal" data-term="' + term.key + '" data-id="' + g.id + '" aria-label="Supprimer">×</button>' +
+            '<textarea class="task-text" data-term="' + term.key + '" data-id="' + g.id + '" rows="1">' + escapeHtml(g.text) + '</textarea>' +
             '<div class="order-controls">' +
             '<button class="order-btn" data-action="goal-up" data-term="' + term.key + '" data-id="' + g.id + '"' + (idx===0?' disabled':'') + ' aria-label="Monter">▲</button>' +
             '<button class="order-btn" data-action="goal-down" data-term="' + term.key + '" data-id="' + g.id + '"' + (idx===list.length-1?' disabled':'') + ' aria-label="Descendre">▼</button>' +
             '</div>' +
-            '<button class="task-del" data-action="del-goal" data-term="' + term.key + '" data-id="' + g.id + '" aria-label="Supprimer">×</button>' +
             '</div>';
         });
         html += '</div>';
@@ -984,13 +982,6 @@
         if (g) { g.text = inp.value; }
         autoGrow(inp);
         schedulePersist();
-      });
-    });
-    root.querySelectorAll('[data-action="toggle-goal"]').forEach(function(btn){
-      btn.addEventListener('click', function(){
-        var term = btn.dataset.term, id = btn.dataset.id;
-        var g = state.goals[term].find(function(x){ return x.id === id; });
-        if (g) { g.done = !g.done; render(); schedulePersist(); }
       });
     });
     root.querySelectorAll('[data-action="del-goal"]').forEach(function(btn){
@@ -1050,15 +1041,16 @@
     var ids = buildRoutineIds(p.goal, tier);
     var meta = LEVEL_META[p.level] || LEVEL_META.debutant;
     html += '<div class="routine-block">' +
-      '<div class="routine-meta">' + ids.length + ' exercices · ' + meta.rounds + ' tours · ' + meta.rest +
+      '<div class="routine-meta">' + ids.length + ' exercices · ' + meta.rounds + ' séries · ' + meta.rest +
       (tier === 'impact_reduit' ? ' · mouvements à faible impact, adaptés à ton IMC' : '') + '</div>' +
       '<div class="exercise-list">';
     ids.forEach(function(id){
       var ex = EXERCISES[id];
       var dose = ex.dose[p.level] || ex.dose.debutant;
+      var doseFull = meta.rounds + ' séries de ' + dose;
       html += '<div class="exercise-card"><div class="exercise-top">' +
         '<div><div class="exercise-name">' + ex.name + '</div><div class="exercise-muscle">' + ex.muscle + '</div></div>' +
-        '<div class="exercise-dose">' + dose + '</div></div>' +
+        '<div class="exercise-dose">' + doseFull + '</div></div>' +
         '<div class="exercise-cue">' + ex.cue + '</div></div>';
     });
     html += '</div>';
