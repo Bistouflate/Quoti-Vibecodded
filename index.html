@@ -192,6 +192,7 @@
   .summary-list{display:flex; flex-direction:column; gap:10px;}
   .summary-row{display:flex; align-items:center; gap:9px; font-size:0.88rem;}
   .summary-row-text{flex:1; min-width:0; font-weight:600;}
+  .summary-card.accent-program .summary-row-text{white-space:pre-wrap;}
   .summary-row-text.done{color:var(--ink-soft); text-decoration:line-through; text-decoration-color:var(--line);}
   .summary-empty{font-size:0.85rem; color:var(--ink-soft); font-weight:600;}
   .summary-tag{
@@ -251,6 +252,16 @@
   .backup-title{font-size:1.05rem; margin-bottom:6px;}
   .backup-sub{margin-bottom:12px; font-weight:600;}
   .backup-row{align-items:center;}
+  .trash-block{border-top:2px solid var(--line); padding-top:18px; margin-top:22px;}
+  .trash-list{display:flex; flex-direction:column; gap:8px; margin-bottom:14px;}
+  .trash-item{
+    display:flex; align-items:center; justify-content:space-between; gap:12px;
+    border:2px solid var(--line); border-radius:14px; padding:10px 12px; background:var(--paper-alt);
+  }
+  .trash-main{min-width:0; flex:1;}
+  .trash-text{font-size:0.9rem; font-weight:700; white-space:pre-wrap; overflow-wrap:anywhere; max-height:4.4em; overflow:hidden;}
+  .trash-meta{font-size:0.72rem; color:var(--ink-soft); font-weight:600; margin-top:2px;}
+  .trash-actions{margin-top:2px;}
 
   /* Reordering */
   .order-controls{display:flex; flex-direction:column; gap:3px; flex:0 0 auto;}
@@ -310,6 +321,36 @@
     font-family:inherit; resize:none; overflow:hidden; line-height:1.4;
   }
   .program-text.done{color:var(--ink-soft); text-decoration:line-through; text-decoration-color:var(--line);}
+
+  /* Calendar */
+  .cal-nav{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:12px;}
+  .cal-title{font-family:var(--font-display); font-weight:700; font-size:1.15rem; text-transform:capitalize;}
+  .cal-arrow{min-width:40px; font-size:1.1rem; line-height:1;}
+  .cal-grid{
+    display:grid; grid-template-columns:repeat(7, 1fr); gap:1px;
+    background:var(--line); border:2px solid var(--line); border-radius:16px; overflow:hidden; margin-bottom:20px;
+  }
+  .cal-dow{background:var(--paper-alt); text-align:center; padding:8px 0; font-size:0.68rem; font-weight:800; color:var(--ink-soft); text-transform:uppercase;}
+  .cal-cell{background:var(--paper); min-height:54px;}
+  .cal-empty{background:var(--paper-alt);}
+  .cal-day{
+    appearance:none; border:none; cursor:pointer; font-family:inherit; color:var(--ink);
+    display:flex; flex-direction:column; align-items:center; justify-content:flex-start; gap:4px; padding:5px 2px;
+  }
+  .cal-day:active{filter:brightness(0.95);}
+  .cal-num{
+    width:28px; height:28px; border-radius:50%; border:2px solid transparent;
+    display:flex; align-items:center; justify-content:center; font-size:0.88rem; font-weight:700;
+  }
+  .cal-day.today .cal-num{border-color:var(--program);}
+  .cal-dot{width:8px; height:8px; border-radius:50%; background:var(--program);}
+  .cal-day.selected{background:var(--program); color:#fff;}
+  .cal-day.selected .cal-dot{background:#fff;}
+  .cal-day.selected.today .cal-num{border-color:#fff;}
+  .day-panel{border:2px solid var(--line); border-top:7px solid var(--program); border-radius:18px; padding:16px; background:var(--paper-alt);}
+  .day-panel-title{font-family:var(--font-display); font-weight:700; font-size:1.05rem; margin-bottom:12px; color:var(--program); display:block;}
+  .day-panel-title::first-letter{text-transform:uppercase;}
+  .day-panel .program-add{margin-bottom:10px;}
 
   /* Sport */
   .form-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); gap:12px; margin-bottom:16px;}
@@ -442,6 +483,7 @@
       lastStreakDate: null,
       goals: { short: [], mid: [], long: [] },
       program: [],
+      trash: [],
       sport: { profile: { height:'', weight:'', age:'', goal:'forme', level:'debutant' }, log: {} }
     };
   }
@@ -457,10 +499,48 @@
     if (!s.goals.mid) s.goals.mid = [];
     if (!s.goals.long) s.goals.long = [];
     if (!s.program) s.program = [];
+    if (!Array.isArray(s.trash)) s.trash = [];
     if (!s.sport) s.sport = { profile: { height:'', weight:'', age:'', goal:'forme', level:'debutant' }, log: {} };
     if (!s.sport.profile) s.sport.profile = { height:'', weight:'', age:'', goal:'forme', level:'debutant' };
     if (!s.sport.log) s.sport.log = {};
     return s;
+  }
+
+  // ---------- Corbeille ----------
+  var TRASH_DAYS = 30, TRASH_MAX = 100;
+  function purgeTrash(){
+    var limit = Date.now() - TRASH_DAYS * 24 * 3600 * 1000;
+    state.trash = state.trash.filter(function(e){ return e && e.item && e.deletedAt >= limit; }).slice(0, TRASH_MAX);
+  }
+  function trashItem(kind, item, meta){
+    var entry = {tid: uid(), kind: kind, item: JSON.parse(JSON.stringify(item)), deletedAt: Date.now()};
+    if (meta) { Object.keys(meta).forEach(function(k){ entry[k] = meta[k]; }); }
+    state.trash.unshift(entry);
+    purgeTrash();
+  }
+  function trashLabel(e){
+    var TERMS = {short:'court terme', mid:'moyen terme', long:'long terme'};
+    if (e.kind === 'task') return 'Checklist';
+    if (e.kind === 'goal') return 'Tâches (' + (TERMS[e.term] || '') + ')';
+    if (e.kind === 'program') {
+      if (!e.item.date) return 'Programme';
+      return 'Programme (' + fmtDateShort(new Date(e.item.date + 'T00:00:00')) + ')';
+    }
+    return '';
+  }
+  function restoreFromTrash(tid){
+    var idx = state.trash.findIndex(function(e){ return e.tid === tid; });
+    if (idx < 0) return;
+    var e = state.trash[idx];
+    var arr = null;
+    if (e.kind === 'task') arr = state.tasks;
+    else if (e.kind === 'goal') { arr = state.goals[e.term]; if (!arr) { arr = state.goals[e.term] = []; } }
+    else if (e.kind === 'program') arr = state.program;
+    if (arr) {
+      var at = (typeof e.index === 'number') ? Math.min(e.index, arr.length) : arr.length;
+      arr.splice(at, 0, e.item);
+    }
+    state.trash.splice(idx, 1);
   }
 
   function loadInitialState(){
@@ -757,6 +837,8 @@
     root.querySelectorAll('.task-del').forEach(function(btn){
       btn.addEventListener('click', function(){
         var id = btn.dataset.id;
+        var i = state.tasks.findIndex(function(x){ return x.id === id; });
+        if (i >= 0) { trashItem('task', state.tasks[i], {index: i}); }
         state.tasks = state.tasks.filter(function(x){ return x.id !== id; });
         render();
         schedulePersist();
@@ -778,14 +860,28 @@
     });
   }
 
+  function earliestActivityKey(){
+    var keys = Object.keys(state.logs);
+    state.tasks.forEach(function(t){ if (t.createdAt) keys.push(ymd(new Date(t.createdAt))); });
+    if (keys.length === 0) return null;
+    return keys.sort()[0];
+  }
+
   function renderTaskHistory(todayKey){
-    var dates = Object.keys(state.logs).filter(function(d){ return d !== todayKey; }).sort().reverse().slice(0,30);
-    if (dates.length === 0 || state.tasks.length === 0) return '';
+    if (state.tasks.length === 0) return '';
+    var first = earliestActivityKey();
+    var days = [];
+    for (var i = 1; i <= 3; i++) {
+      var d = new Date(); d.setDate(d.getDate() - i);
+      var key = ymd(d);
+      if (first && key < first) continue;
+      days.push({key: key, date: d});
+    }
+    if (days.length === 0) return '';
     var html = '<div class="history-section"><div class="history-title">Historique</div>';
-    dates.forEach(function(d){
-      var doneIds = state.logs[d] || [];
-      var dateObj = new Date(d + 'T00:00:00');
-      html += '<div class="history-day"><div class="history-date">' + escapeHtml(fmtDateLong(dateObj)) + '</div><div class="history-tasks">';
+    days.forEach(function(day){
+      var doneIds = state.logs[day.key] || [];
+      html += '<div class="history-day"><div class="history-date">' + escapeHtml(fmtDateLong(day.date)) + '</div><div class="history-tasks">';
       state.tasks.forEach(function(task){
         var done = doneIds.indexOf(task.id) >= 0;
         html += '<span class="history-tag' + (done?' done':'') + '">' + (done?'✓ ':'') + escapeHtml(task.text) + '</span>';
@@ -796,21 +892,68 @@
     return html;
   }
 
+  // ---------- Programme : calendrier ----------
+  var progView = null; // {y, m, sel} - vue du calendrier, gardée sur cet appareil
+  function loadProgView(){
+    try {
+      var raw = localStorage.getItem('quoti-prog-view');
+      if (raw) {
+        var v = JSON.parse(raw);
+        if (v && typeof v.y === 'number' && typeof v.m === 'number' && /^\d{4}-\d{2}-\d{2}$/.test(v.sel || '')) { progView = v; return; }
+      }
+    } catch(e){}
+    var n = new Date();
+    progView = {y: n.getFullYear(), m: n.getMonth(), sel: ymd(n)};
+  }
+  function saveProgView(){
+    try { localStorage.setItem('quoti-prog-view', JSON.stringify(progView)); } catch(e){}
+  }
+  function pad2(n){ return String(n).padStart(2, '0'); }
+
   function renderProgram(){
     var root = document.getElementById('tab-program');
-    var tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1);
-    var defaultDate = ymd(tomorrow);
+    if (!progView) loadProgView();
+    var MOIS = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+    var y = progView.y, m = progView.m, sel = progView.sel;
+    var todayKey = todayStr();
+
+    var counts = {};
+    state.program.forEach(function(it){ if (it.date) counts[it.date] = (counts[it.date] || 0) + 1; });
+
+    var offset = (new Date(y, m, 1).getDay() + 6) % 7; // semaine qui commence le lundi
+    var daysInMonth = new Date(y, m + 1, 0).getDate();
 
     var html = '<div class="panel-head"><div><div class="panel-title">Programme</div>' +
-      '<div class="panel-sub">Ce qui t\u2019attend dans les prochains jours</div></div></div>';
-    html += '<div class="program-add">' +
-      '<input type="date" id="program-date-input" value="' + defaultDate + '">' +
-      '<textarea id="program-text-input" placeholder="Qu\u2019as-tu à faire ?" maxlength="500" rows="1"></textarea>' +
-      '<button class="btn" id="program-add-btn">Ajouter</button></div>';
+      '<div class="panel-sub">Clique sur un jour pour y ajouter ce que tu as prévu</div></div>' +
+      '<button class="btn ghost small" data-action="cal-today">Aujourd\u2019hui</button></div>';
 
-    var items = state.program.slice().sort(function(a,b){ return (a.date||'').localeCompare(b.date||''); });
+    html += '<div class="cal-nav">' +
+      '<button class="btn ghost small cal-arrow" data-action="cal-prev" aria-label="Mois précédent">‹</button>' +
+      '<div class="cal-title">' + MOIS[m] + ' ' + y + '</div>' +
+      '<button class="btn ghost small cal-arrow" data-action="cal-next" aria-label="Mois suivant">›</button></div>';
+
+    html += '<div class="cal-grid">';
+    ['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'].forEach(function(n){ html += '<div class="cal-dow">' + n + '</div>'; });
+    for (var i = 0; i < offset; i++) html += '<div class="cal-cell cal-empty"></div>';
+    for (var d = 1; d <= daysInMonth; d++) {
+      var key = y + '-' + pad2(m + 1) + '-' + pad2(d);
+      var cls = 'cal-cell cal-day' + (key === todayKey ? ' today' : '') + (key === sel ? ' selected' : '');
+      var label = fmtDateLong(new Date(y, m, d)) + (counts[key] ? ', ' + counts[key] + ' prévu' + (counts[key] > 1 ? 's' : '') : '');
+      html += '<button class="' + cls + '" data-day="' + key + '" aria-label="' + escapeHtml(label) + '">' +
+        '<span class="cal-num">' + d + '</span>' + (counts[key] ? '<span class="cal-dot"></span>' : '') + '</button>';
+    }
+    var trail = (7 - ((offset + daysInMonth) % 7)) % 7;
+    for (var t = 0; t < trail; t++) html += '<div class="cal-cell cal-empty"></div>';
+    html += '</div>';
+
+    var selDate = new Date(sel + 'T00:00:00');
+    var items = state.program.filter(function(it){ return it.date === sel; });
+    html += '<div class="day-panel"><div class="day-panel-title">' + escapeHtml(fmtDateLong(selDate)) + '</div>' +
+      '<div class="program-add">' +
+      '<textarea id="program-text-input" placeholder="Qu\u2019as-tu à faire ce jour-là ?" maxlength="500" rows="1"></textarea>' +
+      '<button class="btn" id="program-add-btn">Ajouter</button></div>';
     if (items.length === 0) {
-      html += '<div class="task-empty">Rien de prévu pour l\u2019instant. Ajoute ce qui t\u2019attend, avec sa date.</div>';
+      html += '<div class="task-empty">Rien de prévu ce jour-là.</div>';
     } else {
       html += '<div class="task-list">';
       items.forEach(function(it){
@@ -822,16 +965,41 @@
       });
       html += '</div>';
     }
+    html += '</div>';
     root.innerHTML = html;
 
     root.querySelectorAll('.program-text').forEach(autoGrow);
 
-    var dateInput = document.getElementById('program-date-input');
+    function goTo(ny, nm){
+      var n = new Date(ny, nm, 1);
+      var nowD = new Date();
+      var isCurrent = (n.getFullYear() === nowD.getFullYear() && n.getMonth() === nowD.getMonth());
+      progView = {y: n.getFullYear(), m: n.getMonth(), sel: isCurrent ? ymd(nowD) : ymd(n)};
+      saveProgView();
+      render();
+    }
+    root.querySelectorAll('[data-action="cal-prev"]').forEach(function(b){
+      b.addEventListener('click', function(){ goTo(progView.y, progView.m - 1); });
+    });
+    root.querySelectorAll('[data-action="cal-next"]').forEach(function(b){
+      b.addEventListener('click', function(){ goTo(progView.y, progView.m + 1); });
+    });
+    root.querySelectorAll('[data-action="cal-today"]').forEach(function(b){
+      b.addEventListener('click', function(){ var n = new Date(); goTo(n.getFullYear(), n.getMonth()); });
+    });
+    root.querySelectorAll('[data-day]').forEach(function(b){
+      b.addEventListener('click', function(){
+        progView.sel = b.dataset.day;
+        saveProgView();
+        render();
+      });
+    });
+
     var textInput = document.getElementById('program-text-input');
     function doAdd(){
       var v = textInput.value.trim();
       if (!v) return;
-      state.program.push({id: uid(), date: dateInput.value || defaultDate, text: v, done:false, createdAt: Date.now()});
+      state.program.push({id: uid(), date: sel, text: v, done:false, createdAt: Date.now()});
       textInput.value = '';
       render();
       schedulePersist();
@@ -842,7 +1010,8 @@
     root.querySelectorAll('.program-date').forEach(function(inp){
       inp.addEventListener('change', function(){
         var it = state.program.find(function(x){ return x.id === inp.dataset.id; });
-        if (it) { it.date = inp.value; render(); schedulePersist(); }
+        if (it && inp.value) { it.date = inp.value; render(); schedulePersist(); }
+        else { render(); }
       });
     });
     root.querySelectorAll('.program-text').forEach(function(inp){
@@ -855,6 +1024,8 @@
     });
     root.querySelectorAll('[data-action="del-program"]').forEach(function(btn){
       btn.addEventListener('click', function(){
+        var pi = state.program.findIndex(function(x){ return x.id === btn.dataset.id; });
+        if (pi >= 0) { trashItem('program', state.program[pi]); }
         state.program = state.program.filter(function(x){ return x.id !== btn.dataset.id; });
         render();
         schedulePersist();
@@ -887,7 +1058,42 @@
       '<label class="file-label">Importer des données<input type="file" id="import-data-input" accept=".json,application/json"></label>' +
       '</div></div>';
 
+    html += '<div class="trash-block">' +
+      '<div class="panel-title backup-title">Corbeille</div>' +
+      '<div class="panel-sub backup-sub">Ce que tu supprimes reste ici ' + TRASH_DAYS + ' jours, au cas où.</div>';
+    if (state.trash.length === 0) {
+      html += '<div class="summary-empty">La corbeille est vide.</div>';
+    } else {
+      html += '<div class="trash-list">';
+      state.trash.forEach(function(e){
+        html += '<div class="trash-item"><div class="trash-main">' +
+          '<div class="trash-text">' + escapeHtml(e.item.text) + '</div>' +
+          '<div class="trash-meta">' + escapeHtml(trashLabel(e)) + '</div>' +
+          '<div class="trash-meta">Supprimé le ' + new Date(e.deletedAt).toLocaleDateString('fr-FR') + '</div></div>' +
+          '<button class="btn ghost small" data-action="restore" data-tid="' + e.tid + '">Restaurer</button></div>';
+      });
+      html += '</div><div class="row trash-actions"><button class="btn danger small" id="empty-trash-btn">Vider la corbeille</button></div>';
+    }
+    html += '</div>';
+
     root.innerHTML = html;
+
+    root.querySelectorAll('[data-action="restore"]').forEach(function(b){
+      b.addEventListener('click', function(){
+        restoreFromTrash(b.dataset.tid);
+        render();
+        schedulePersist();
+      });
+    });
+    var emptyBtn = document.getElementById('empty-trash-btn');
+    if (emptyBtn) {
+      emptyBtn.addEventListener('click', function(){
+        if (!confirm('Supprimer définitivement tout le contenu de la corbeille ?')) return;
+        state.trash = [];
+        render();
+        schedulePersist();
+      });
+    }
 
     document.getElementById('export-data-btn').addEventListener('click', function(){
       var json = JSON.stringify(state, null, 2);
@@ -987,6 +1193,8 @@
     root.querySelectorAll('[data-action="del-goal"]').forEach(function(btn){
       btn.addEventListener('click', function(){
         var term = btn.dataset.term, id = btn.dataset.id;
+        var gi = state.goals[term].findIndex(function(x){ return x.id === id; });
+        if (gi >= 0) { trashItem('goal', state.goals[term][gi], {term: term, index: gi}); }
         state.goals[term] = state.goals[term].filter(function(x){ return x.id !== id; });
         render();
         schedulePersist();
@@ -1116,6 +1324,7 @@
 
   async function init(){
     state = loadInitialState();
+    purgeTrash();
     checkStreakDecay();
 
     try {
