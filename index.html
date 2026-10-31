@@ -1324,7 +1324,6 @@
 
   async function init(){
     state = loadInitialState();
-    purgeTrash();
     checkStreakDecay();
 
     try {
@@ -1344,10 +1343,11 @@
         var cached = localStorage.getItem('quoti-state-v1');
         if (cached) {
           var parsed = JSON.parse(cached);
-          if (parsed && parsed.tasks) state = parsed;
+          if (parsed && parsed.tasks) state = normalizeState(parsed);
         }
       } catch(e){}
     }
+    purgeTrash();
 
     bindTabs();
     flushOnHide();
