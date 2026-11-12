@@ -347,6 +347,17 @@
   .cal-day.selected{background:var(--program); color:#fff;}
   .cal-day.selected .cal-dot{background:#fff;}
   .cal-day.selected.today .cal-num{border-color:#fff;}
+  .cal-jump{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px;}
+  .cal-jump-btn{
+    appearance:none; border:2px solid var(--line-strong); border-bottom-width:4px; background:var(--paper-alt);
+    border-radius:14px; padding:8px 12px; cursor:pointer; font-family:inherit; color:var(--ink);
+    display:flex; flex-direction:column; gap:2px; text-align:left;
+  }
+  .cal-jump-next{text-align:right; align-items:flex-end;}
+  .cal-jump-btn:disabled{opacity:0.45; cursor:default;}
+  .cal-jump-btn:not(:disabled):active{transform:translateY(2px); border-bottom-width:2px;}
+  .cal-jump-kind{font-size:0.72rem; font-weight:800; color:var(--program);}
+  .cal-jump-date{font-size:0.9rem; font-weight:800;}
   .day-panel{border:2px solid var(--line); border-top:7px solid var(--program); border-radius:18px; padding:16px; background:var(--paper-alt);}
   .day-panel-title{font-family:var(--font-display); font-weight:700; font-size:1.05rem; margin-bottom:12px; color:var(--program); display:block;}
   .day-panel-title::first-letter{text-transform:uppercase;}
@@ -946,6 +957,21 @@
     for (var t = 0; t < trail; t++) html += '<div class="cal-cell cal-empty"></div>';
     html += '</div>';
 
+    var dateSet = {};
+    state.program.forEach(function(it){ if (it.date) dateSet[it.date] = true; });
+    var prevKey = null, nextKey = null;
+    Object.keys(dateSet).sort().forEach(function(k){
+      if (k < sel) prevKey = k;
+      else if (k > sel && !nextKey) nextKey = k;
+    });
+    function jumpDate(k){ return k ? escapeHtml(fmtDateShort(new Date(k + 'T00:00:00'))) : 'Aucun'; }
+    html += '<div class="cal-jump">' +
+      '<button class="cal-jump-btn" data-jump-to="' + (prevKey || '') + '"' + (prevKey ? '' : ' disabled') + '>' +
+        '<span class="cal-jump-kind">‹ Précédent</span><span class="cal-jump-date">' + jumpDate(prevKey) + '</span></button>' +
+      '<button class="cal-jump-btn cal-jump-next" data-jump-to="' + (nextKey || '') + '"' + (nextKey ? '' : ' disabled') + '>' +
+        '<span class="cal-jump-kind">Suivant ›</span><span class="cal-jump-date">' + jumpDate(nextKey) + '</span></button>' +
+      '</div>';
+
     var selDate = new Date(sel + 'T00:00:00');
     var items = state.program.filter(function(it){ return it.date === sel; });
     html += '<div class="day-panel"><div class="day-panel-title">' + escapeHtml(fmtDateLong(selDate)) + '</div>' +
@@ -990,6 +1016,17 @@
     root.querySelectorAll('[data-day]').forEach(function(b){
       b.addEventListener('click', function(){
         progView.sel = b.dataset.day;
+        saveProgView();
+        render();
+      });
+    });
+
+    root.querySelectorAll('[data-jump-to]').forEach(function(b){
+      b.addEventListener('click', function(){
+        var k = b.dataset.jumpTo;
+        if (!k) return;
+        var d = new Date(k + 'T00:00:00');
+        progView = {y: d.getFullYear(), m: d.getMonth(), sel: k};
         saveProgView();
         render();
       });
